@@ -1,0 +1,52 @@
+CREATE TABLE IF NOT EXISTS fiqh_books (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  madhhab ENUM('Hanafi','Shafii','Maliki','Hanbali','Other') DEFAULT 'Hanafi'
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS fiqh_texts (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  book_id INT NOT NULL,
+  chapter VARCHAR(255) NOT NULL,
+  ref_citation VARCHAR(255) DEFAULT NULL,
+  lang ENUM('ur','en','ar') DEFAULT 'ur',
+  text LONGTEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (book_id) REFERENCES fiqh_books(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- Store embeddings as JSON array (vector) + l2norm for fast cosine
+CREATE TABLE IF NOT EXISTS fiqh_embeddings (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  text_id BIGINT NOT NULL,
+  dim INT NOT NULL,
+  vec_json JSON NOT NULL,
+  l2norm DOUBLE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (text_id) REFERENCES fiqh_texts(id) ON DELETE CASCADE,
+  INDEX (text_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS queries (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  q TEXT NOT NULL,
+  top_text_id BIGINT NULL,
+  score DOUBLE NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS muftis (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  whatsapp VARCHAR(32) NULL,
+  is_active TINYINT(1) DEFAULT 1
+) ENGINE=InnoDB;
+
+-- Optional: minimal users if you later add auth
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  device_id VARCHAR(64),
+  madhhab VARCHAR(16),
+  lang VARCHAR(8),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
